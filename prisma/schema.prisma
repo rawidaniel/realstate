@@ -14,15 +14,30 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
+  username String   @unique
   email     String   @unique
-  name      String?
-  password  String?
+  password  String
+  profilePicture String?
+  phoneNumber String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   deletedAt DateTime?
 
-  @@index([email])
 
   @@map("users")
+}
+
+model Admin {
+  id        String   @id @default(uuid())
+  username String   @unique
+  email     String   @unique
+  password  String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+
+  @@map("admins")
 }
