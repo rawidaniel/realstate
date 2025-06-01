@@ -3,9 +3,13 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 // Read all items
-export const getItems = (req: Request, res: Response, next: NextFunction) => {
+export const getItems = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
-    const items = prisma.item.findMany();
+    const items = await prisma.user.findMany();
     res.json(items);
   } catch (error) {
     next(error);
