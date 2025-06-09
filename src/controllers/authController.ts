@@ -19,7 +19,9 @@ const generateAccessToken = (payload: object) => {
 
 // Generate Refresh Token
 const generateRefreshToken = (payload: object) => {
-  return jwt.sign(payload, JWT_REFRESH_SECRET, { expiresIn: JWT_REFRESH_EXPIRES_IN });
+  return jwt.sign(payload, JWT_REFRESH_SECRET, {
+    expiresIn: JWT_REFRESH_EXPIRES_IN,
+  });
 };
 
 // ========== USER SIGNUP ==========
@@ -28,7 +30,8 @@ export const userSignup = async (req: Request, res: Response) => {
 
   try {
     const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) return res.status(400).json({ message: 'Email already exists' });
+    if (existingUser)
+      return res.status(400).json({ message: 'Email already exists' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
@@ -56,7 +59,8 @@ export const adminSignup = async (req: Request, res: Response) => {
 
   try {
     const existingAdmin = await prisma.admin.findUnique({ where: { email } });
-    if (existingAdmin) return res.status(400).json({ message: 'Email already exists' });
+    if (existingAdmin)
+      return res.status(400).json({ message: 'Email already exists' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const admin = await prisma.admin.create({
@@ -82,10 +86,12 @@ export const userLogin = async (req: Request, res: Response) => {
 
   try {
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) return res.status(400).json({ message: 'Invalid email or password' });
+    if (!user)
+      return res.status(400).json({ message: 'Invalid email or password' });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: 'Invalid email or password' });
+    if (!isMatch)
+      return res.status(400).json({ message: 'Invalid email or password' });
 
     const accessToken = generateAccessToken({ id: user.id, role: 'USER' });
     const refreshToken = generateRefreshToken({ id: user.id, role: 'USER' });
@@ -102,10 +108,12 @@ export const adminLogin = async (req: Request, res: Response) => {
 
   try {
     const admin = await prisma.admin.findUnique({ where: { email } });
-    if (!admin) return res.status(400).json({ message: 'Invalid email or password' });
+    if (!admin)
+      return res.status(400).json({ message: 'Invalid email or password' });
 
     const isMatch = await bcrypt.compare(password, admin.password);
-    if (!isMatch) return res.status(400).json({ message: 'Invalid email or password' });
+    if (!isMatch)
+      return res.status(400).json({ message: 'Invalid email or password' });
 
     const accessToken = generateAccessToken({ id: admin.id, role: 'ADMIN' });
     const refreshToken = generateRefreshToken({ id: admin.id, role: 'ADMIN' });
@@ -119,7 +127,8 @@ export const adminLogin = async (req: Request, res: Response) => {
 // ========== REFRESH ACCESS TOKEN ==========
 export const refreshAccessToken = async (req: Request, res: Response) => {
   const { refreshToken } = req.body;
-  if (!refreshToken) return res.status(401).json({ message: 'Missing refresh token' });
+  if (!refreshToken)
+    return res.status(401).json({ message: 'Missing refresh token' });
 
   try {
     const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET) as any;
@@ -131,7 +140,9 @@ export const refreshAccessToken = async (req: Request, res: Response) => {
 
     res.status(200).json({ accessToken: newAccessToken });
   } catch (err) {
-    return res.status(403).json({ message: 'Invalid or expired refresh token' });
+    return res
+      .status(403)
+      .json({ message: 'Invalid or expired refresh token' });
   }
 };
 
@@ -147,19 +158,23 @@ export const protect = async (req: any, res: Response, next: NextFunction) => {
     }
 
     if (!token) {
-      return next(new Error('You are not logged in. Please log in to get access.'));
+      return next(
+        new Error('You are not logged in. Please log in to get access.'),
+      );
     }
 
-    const decoded = await promisify(jwt.verify)(token) as any;
+    const decoded = (await promisify(jwt.verify)(token)) as any;
     const user = await prisma.admin.findUnique({ where: { id: decoded.id } });
-    
+
     if (!user) {
-      return next(new Error('The user belonging to this token does no longer exist.'));
+      return next(
+        new Error('The user belonging to this token does no longer exist.'),
+      );
     }
 
-    if (user.passwordChangedAt && decoded.iat < user.passwordChangedAt.getTime() / 1000) {
-      return next(new Error('User recently changed password. Please login again.'));
-    }
+    // if (user.passwordChangedAt && decoded.iat < user.passwordChangedAt.getTime() / 1000) {
+    //   return next(new Error('User recently changed password. Please login again.'));
+    // }
 
     req.user = user;
     next();

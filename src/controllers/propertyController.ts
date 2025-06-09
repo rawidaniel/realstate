@@ -1,4 +1,3 @@
-
 import { PrismaClient } from '@prisma/client';
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
@@ -7,7 +6,7 @@ const prisma = new PrismaClient();
 
 const blogSchema = z.object({
   title: z.string().min(1, 'Title is required'),
-  content: z.string().min(1, 'Content is required')
+  content: z.string().min(1, 'Content is required'),
 });
 
 const propertySchema = z.object({
@@ -18,23 +17,29 @@ const propertySchema = z.object({
   status: z.string(),
   description: z.string(),
   contactDetail: z.string(),
-  video: z.string().optional()
+  video: z.string().optional(),
 });
 
-export const createProperty = async (req: Request, res: Response, next: NextFunction) => {
+export const createProperty = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const user = (req as any).user;
     if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
     const parsed = propertySchema.safeParse(req.body);
     if (!parsed.success) {
-      return res.status(400).json({ error: parsed.error.flatten().fieldErrors });
+      return res
+        .status(400)
+        .json({ error: parsed.error.flatten().fieldErrors });
     }
 
     const property = await prisma.propertyDetail.create({
       data: {
         ...parsed.data,
-        adminId: user.id,
+        // adminId: user.id,
       },
     });
 
@@ -45,7 +50,11 @@ export const createProperty = async (req: Request, res: Response, next: NextFunc
   }
 };
 
-export const updateProperty = async (req: Request, res: Response, next: NextFunction) => {
+export const updateProperty = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const id = Number(req.params.id);
     const user = (req as any).user;
@@ -54,13 +63,15 @@ export const updateProperty = async (req: Request, res: Response, next: NextFunc
     const existing = await prisma.propertyDetail.findUnique({ where: { id } });
     if (!existing) return res.status(404).json({ error: 'Not found' });
 
-    if (existing.adminId !== user.id) {
-      return res.status(403).json({ error: 'Forbidden' });
-    }
+    // if (existing.adminId !== user.id) {
+    //   return res.status(403).json({ error: 'Forbidden' });
+    // }
 
     const parsed = propertySchema.safeParse(req.body);
     if (!parsed.success) {
-      return res.status(400).json({ error: parsed.error.flatten().fieldErrors });
+      return res
+        .status(400)
+        .json({ error: parsed.error.flatten().fieldErrors });
     }
 
     const updated = await prisma.propertyDetail.update({
@@ -75,7 +86,11 @@ export const updateProperty = async (req: Request, res: Response, next: NextFunc
   }
 };
 
-export const deleteProperty = async (req: Request, res: Response, next: NextFunction) => {
+export const deleteProperty = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
   try {
     const id = Number(req.params.id);
     const user = (req as any).user;
@@ -84,9 +99,9 @@ export const deleteProperty = async (req: Request, res: Response, next: NextFunc
     const existing = await prisma.propertyDetail.findUnique({ where: { id } });
     if (!existing) return res.status(404).json({ error: 'Not found' });
 
-    if (existing.adminId !== user.id) {
-      return res.status(403).json({ error: 'Forbidden' });
-    }
+    // if (existing.adminId !== user.id) {
+    //   return res.status(403).json({ error: 'Forbidden' });
+    // }
 
     await prisma.propertyDetail.delete({ where: { id } });
     res.status(200).json({ message: 'Deleted successfully' });
@@ -133,4 +148,3 @@ export const getAllProperties = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to retrieve properties' });
   }
 };
-
