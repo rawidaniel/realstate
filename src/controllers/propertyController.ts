@@ -36,14 +36,14 @@ export const createProperty = async (
         .json({ error: parsed.error.flatten().fieldErrors });
     }
 
-    const property = await prisma.propertyDetail.create({
-      data: {
-        ...parsed.data,
-        // adminId: user.id,
-      },
-    });
+    // const property = await prisma.propertyDetail.create({
+    //   data: {
+    //     ...parsed.data,
+    //     // adminId: user.id,
+    //   },
+    // });
 
-    res.status(201).json(property);
+    // res.status(201).json(property);
   } catch (err) {
     console.error('Create error:', err);
     next(err);
@@ -146,5 +146,125 @@ export const getAllProperties = async (req: Request, res: Response) => {
   } catch (err: any) {
     console.error('Fetch all error:', err);
     res.status(500).json({ error: 'Failed to retrieve properties' });
+  }
+};
+
+export const searchProperties = async (req: Request, res: Response) => {
+  try {
+    const {
+      propertyType,
+      purchaseType,
+      minPrice,
+      maxPrice,
+      location,
+      city,
+      state,
+      bedrooms,
+      bathrooms,
+      minArea,
+      maxArea,
+      features,
+      page = '1',
+      limit = '10',
+      sortBy = 'createdAt',
+      sortOrder = 'desc'
+    } = req.query;
+
+    // Build the where clause
+    const where: any = {
+      deletedAt: null,
+    };
+
+    // Add filters if they exist
+    if (propertyType) {
+      where.propertyType = propertyType;
+    }
+
+    if (purchaseType) {
+      where.purchase = purchaseType;
+    }
+
+    if (minPrice || maxPrice) {
+      where.price = {};
+      if (minPrice) where.price.gte = parseFloat(minPrice as string);
+      if (maxPrice) where.price.lte = parseFloat(maxPrice as string);
+    }
+
+    if (location) {
+      where.location = {
+        contains: location as string,
+        mode: 'insensitive'
+      };
+    }
+
+    if (city) {
+      where.city = {
+        contains: city as string,
+        mode: 'insensitive'
+      };
+    }
+
+    if (state) {
+      where.state = {
+        contains: state as string,
+        mode: 'insensitive'
+      };
+    }
+
+    if (bedrooms) {
+      where.bedrooms = parseInt(bedrooms as string);
+    }
+
+    if (bathrooms) {
+      where.bathrooms = parseInt(bathrooms as string);
+    }
+
+    if (minArea || maxArea) {
+      where.area = {};
+      if (minArea) where.area.gte = parseFloat(minArea as string);
+      if (maxArea) where.area.lte = parseFloat(maxArea as string);
+    }
+
+    if (features) {
+      const featureArray = (features as string).split(',');
+      where.features = {
+        contains: featureArray.join('|'),
+        mode: 'insensitive'
+      };
+    }
+
+    // Pagination
+    const pageNumber = parseInt(page as string, 10);
+    const limitNumber = parseInt(limit as string, 10);
+    const skip = (pageNumber - 1) * limitNumber;
+
+    // Sorting
+    const orderBy: any = {};
+    orderBy[sortBy as string] = sortOrder;
+
+    // Execute query
+    const [properties, total] = await Promise.all([
+      prisma.propertyDetail.findMany({
+        where,
+        skip,
+        take: limitNumber,
+        orderBy,
+      }),
+      prisma.propertyDetail.count({ where })
+    ]);
+
+    // Return results
+    res.json({
+      properties,
+      pagination: {
+        total,
+        page: pageNumber,
+        limit: limitNumber,
+        totalPages: Math.ceil(total / limitNumber)
+      }
+    });
+  } catch (err) {
+    console.error('Search error:', err);
+    res.status(500).json({ error: 'Failed to search properties' });
   }
 };

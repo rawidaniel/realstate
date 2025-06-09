@@ -67,6 +67,14 @@ model PropertyDetail {
   description  String
   contactDetail String
   video        String?
+  location     String
+  city         String
+  state        String
+  zipCode      String
+  bedrooms     Int?
+  bathrooms    Int?
+  area         Float?   // in square feet/meters
+  features     String?  // JSON string of features
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   deletedAt    DateTime?

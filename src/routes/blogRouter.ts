@@ -8,15 +8,16 @@ import {
     updateBlog,
     deleteBlog
 } from "../controllers/blogController";
-import { authenticate } from "../middlewares/authHandler";
 
 const router = Router();
 
+// Public routes
 router.get('/blog', getAllBlogs as RequestHandler);
-router.get('/blog/:id', authenticate as RequestHandler, getBlogById as RequestHandler);
+router.get('/blog/:id', getBlogById as RequestHandler);
 
-//admin
+// Protected routes (admin only)
 router.post('/blog', protect, createBlog as RequestHandler);
-router.put('/blog/:id', updateBlog as RequestHandler);
-router.delete('/blog/:id', deleteBlog as RequestHandler);
+router.put('/blog/:id', protect, updateBlog as RequestHandler);
+router.delete('/blog/:id', protect, deleteBlog as RequestHandler);
+
 export default router;

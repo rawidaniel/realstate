@@ -4,16 +4,20 @@ import {
     getPropertyById,
     updateProperty,
     createProperty,
-    deleteProperty
+    deleteProperty,
+    searchProperties
 } from "../controllers/propertyController";
-import { authenticate } from "../middlewares/authHandler";
-
+import { protect } from "../controllers/authController";
 const router = Router();
 
+// Public routes
 router.get('/properties', getAllProperties as RequestHandler);
-router.get('/property/:id', authenticate as RequestHandler, getPropertyById as RequestHandler);
-router.post('/property', createProperty as RequestHandler);
-router.put('/property/:id', updateProperty as RequestHandler);
-router.delete('/property/:id', deleteProperty as RequestHandler);
+router.get('/properties/search', searchProperties as RequestHandler);
+router.get('/property/:id', getPropertyById as RequestHandler);
+
+// Protected routes
+router.post('/property', protect, createProperty as RequestHandler);
+router.put('/property/:id', protect, updateProperty as RequestHandler);
+router.delete('/property/:id', protect, deleteProperty as RequestHandler);
 
 export default router;

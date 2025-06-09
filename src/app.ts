@@ -13,7 +13,7 @@ app.use(express.json());
 app.use('/api', propertyRoutes);
 app.use('/api', blogRoutes);
 app.use('/api/auth', authRoutes);
-app.use('/api/admin', adminRoutes);
+// app.use('/api/admin', adminRoutes);
 
 // Global error handler (should be after routes)
 app.use(errorHandler);
