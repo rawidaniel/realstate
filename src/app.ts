@@ -1,13 +1,19 @@
 import express from 'express';
-import itemRoutes from './routes/itemRoutes';
+import propertyRoutes from './routes/propertyRoutes';
+import blogRoutes from './routes/blogRouter';
+import authRoutes from './routes/authRoute';
+import adminRoutes from './routes/adminRoute';
 import { errorHandler } from './middlewares/errorHandler';
 
 const app = express();
 
 app.use(express.json());
 
-// Routes
-app.use('/api/items', itemRoutes);
+// Register routes
+app.use('/api', propertyRoutes);
+app.use('/api', blogRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Global error handler (should be after routes)
 app.use(errorHandler);
